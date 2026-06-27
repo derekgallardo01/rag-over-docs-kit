@@ -1,5 +1,7 @@
 # RAG-over-your-docs kit
 
+[![CI](https://github.com/derekgallardo01/rag-over-docs-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/derekgallardo01/rag-over-docs-kit/actions/workflows/ci.yml)
+
 A retrieval-augmented-generation kit that answers questions from a set of
 documents and **cites the exact source document and chunk** for every answer —
 the auditability a business needs before it trusts an AI over its own
