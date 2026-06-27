@@ -64,12 +64,17 @@ cross-document citation example: [docs/sample-run.txt](docs/sample-run.txt).
 
 ## Evaluation
 
-A golden Q→top-doc set under [evals/golden.json](evals/golden.json) covers
-retrieval across all three sample documents.
+Two corpora ship in the repo to prove the kit isn't a one-trick pony:
+
+- **Workplace corpus** (HR / refunds / security) — 14 cases in [evals/golden.json](evals/golden.json) against [data/](data/).
+- **Technical-docs corpus** (auth / rate-limits / webhooks) — 12 cases in [evals/golden-tech.json](evals/golden-tech.json) against [data-tech/](data-tech/).
 
 ```bash
 $ python evals/run.py
-Eval: 14/14 passed (100%)
+Eval (golden.json): 14/14 passed (100%)
+
+$ python evals/run.py golden-tech.json data-tech
+Eval (golden-tech.json): 12/12 passed (100%)
 ```
 
 How to add cases (real-world failure capture, paraphrases, adversarial queries)

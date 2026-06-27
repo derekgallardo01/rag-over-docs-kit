@@ -1,0 +1,14 @@
+[
+  {"id": "tech-create-api-key", "question": "How do I create a new API key?", "expect": {"top_doc": "api-authentication.md"}},
+  {"id": "tech-auth-header", "question": "Which HTTP header should I use for authentication?", "expect": {"top_doc": "api-authentication.md"}},
+  {"id": "tech-rotate-keys", "question": "How do I rotate an API key without downtime?", "expect": {"top_doc": "api-authentication.md"}},
+  {"id": "tech-service-account", "question": "Should I use a service account for machine to machine API access?", "expect": {"top_doc": "api-authentication.md"}},
+  {"id": "tech-default-limits", "question": "What are the default rate limits for the API?", "expect": {"top_doc": "rate-limits.md"}},
+  {"id": "tech-429-handling", "question": "HTTP 429 error - retry strategy and backoff?", "expect": {"top_doc": "rate-limits.md"}},
+  {"id": "tech-bulk-endpoints", "question": "How can I avoid hitting rate limits when extracting lots of records?", "expect": {"top_doc": "rate-limits.md"}},
+  {"id": "tech-raise-limit", "question": "How do I request a higher rate limit?", "expect": {"top_doc": "rate-limits.md"}},
+  {"id": "tech-webhooks-overview", "question": "What are webhooks for and how do I subscribe?", "expect": {"top_doc": "webhooks.md"}},
+  {"id": "tech-webhook-signature", "question": "How do I verify the signature on a webhook delivery?", "expect": {"top_doc": "webhooks.md"}},
+  {"id": "tech-webhook-replay", "question": "Can I replay a failed webhook delivery?", "expect": {"top_doc": "webhooks.md"}},
+  {"id": "tech-webhook-ack", "question": "Why does my webhook handler keep timing out?", "expect": {"top_doc": "webhooks.md"}}
+]

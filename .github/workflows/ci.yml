@@ -18,7 +18,9 @@ jobs:
         run: pip install --quiet pytest
       - name: Unit tests
         run: python -m pytest -q
-      - name: Eval harness (golden top-doc set)
+      - name: Eval harness — workplace corpus (HR / refunds / security)
         run: python evals/run.py
+      - name: Eval harness — technical docs corpus (auth / rate-limits / webhooks)
+        run: python evals/run.py golden-tech.json data-tech
       - name: Smoke-test the demo
         run: python run.py
