@@ -93,6 +93,42 @@ def build_index(folder: str) -> TfidfIndex:
     return TfidfIndex(chunks)
 
 
+# --- Re-ranking ---------------------------------------------------------------
+
+RERANK_WEIGHT = 0.35
+
+
+def _best_sentence_overlap(query: str, text: str) -> float:
+    """Fraction of query tokens that appear in the chunk's best-matching sentence."""
+    q = set(tokenize(query))
+    if not q:
+        return 0.0
+    sents = [s for s in re.split(r"(?<=[.!?])\s+", text.replace("\n", " ")) if s.strip()]
+    if not sents:
+        return 0.0
+    best = max(len(q & set(tokenize(s))) for s in sents)
+    return best / len(q)
+
+
+def rerank(
+    query: str,
+    hits: list[tuple[Chunk, float]],
+    weight: float = RERANK_WEIGHT,
+) -> list[tuple[Chunk, float]]:
+    """Re-score TF-IDF hits with a query-sentence-overlap bonus.
+
+    Combines the existing cosine score with `weight * best_sentence_overlap`.
+    Ties broken by (doc, idx) for determinism. Returns same chunks, possibly
+    reordered, with the combined score.
+    """
+    rescored = [
+        (ch, score + weight * _best_sentence_overlap(query, ch.text))
+        for ch, score in hits
+    ]
+    rescored.sort(key=lambda x: (-x[1], x[0].doc, x[0].idx))
+    return rescored
+
+
 # --- Generation (pluggable) ---------------------------------------------------
 
 def _best_sentences(query: str, text: str, n: int = 2) -> str:
@@ -182,4 +218,6 @@ def _anthropic_complete(query, hits):  # pragma: no cover
 
 
 def answer(query: str, index: TfidfIndex, k: int = 3) -> str:
-    return complete(query, index.query(query, k))
+    candidates = index.query(query, k=max(k * 2, k + 3))
+    top = rerank(query, candidates)[:k]
+    return complete(query, top)

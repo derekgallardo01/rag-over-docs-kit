@@ -1,49 +1,103 @@
 # RAG-over-your-docs kit
 
-A retrieval-augmented-generation kit that answers questions from a set of documents
-and **cites the exact source document and chunk** for every answer — the
-auditability a business needs before it trusts an AI over its own knowledge base.
+A retrieval-augmented-generation kit that answers questions from a set of
+documents and **cites the exact source document and chunk** for every answer —
+the auditability a business needs before it trusts an AI over its own
+knowledge base.
 
-Pure Python standard library, no dependencies, no keys: `python run.py` runs the
-whole retrieve → ground → cite loop offline.
+Pure Python standard library, no dependencies, no keys. Ships with TF-IDF
+retrieval + a query-aware re-ranker, an interactive REPL, and an evaluation
+harness with a golden Q→top-doc set so changes to chunking, re-rank weight, or
+the model produce measurable pass/fail outcomes.
+
+```bash
+python run.py                # answer 3 sample questions with citations
+python cli.py                # interactive REPL ('k N' to change top-k)
+python evals/run.py          # CI-gating golden eval set
+python -m pytest -q          # 9 unit tests, including re-rank determinism
+```
 
 ## The problem it solves
 
-"Chatbot over our docs" projects fail when the bot makes things up or can't show
-where an answer came from. This kit is built citation-first: it retrieves the most
-relevant chunks with a TF-IDF index and grounds the answer in them, returning the
-source for each so a human can verify it.
+"Chatbot over our docs" projects fail when the bot makes things up or can't
+show where an answer came from. This kit is built citation-first: it retrieves
+the most relevant chunks, re-ranks them with a query-aware bonus, and grounds
+the answer in them — returning the source document and chunk index for each so
+a human can verify it.
 
 ```mermaid
 flowchart LR
-    Q["Question"] --> R["Retrieve top chunks\n(TF-IDF index)"]
-    R --> G["Ground answer in chunks"]
+    Q["Question"] --> R["Retrieve top chunks<br/>(TF-IDF index)"]
+    R --> RR["Re-rank<br/>(sentence-overlap bonus)"]
+    RR --> G["Ground answer in chunks"]
     G --> A["Answer + [source, chunk] citations"]
 ```
 
-## Run it
+## Architecture in one paragraph
 
-```bash
-python run.py                # answers sample questions with sources
-python -m pytest -q
+`answer(query, index, k=3)` runs three steps: (1) `index.query` over-retrieves
+`2k` TF-IDF candidates; (2) `rerank` re-scores them with
+`(1-α)·tfidf + α·sentence_overlap` (default `α=0.35`) so chunks where the query
+tokens cluster in a single sentence beat chunks where they're spread across
+paragraphs; (3) `complete` generates a cited answer (local stub by default,
+Azure / Anthropic adapters wired). Full diagrams + per-component notes:
+[docs/architecture.md](docs/architecture.md).
+
+## Sample output
+
+```text
+Q: What is the refund policy?
+------------------------------------------------------------
+# Refund & Returns Policy (sample)  ## Refund policy Customers may request a
+refund within 30 days of purchase. ## How to request Submit a refund request
+through the support portal with your order number. [1] ...
+
+Sources:
+  [1] refunds.md (chunk 0)
+  [2] security.md (chunk 0)
 ```
 
-Ask "what is the refund policy?" and it answers from `refunds.md` with the citation;
-ask about PTO and it pulls from `hr-policy.md`. Every answer lists the source
-documents and chunk indexes it used.
+Captured run including a re-ranking before/after comparison and a
+cross-document citation example: [docs/sample-run.txt](docs/sample-run.txt).
+
+## Evaluation
+
+A golden Q→top-doc set under [evals/golden.json](evals/golden.json) covers
+retrieval across all three sample documents.
+
+```bash
+$ python evals/run.py
+Eval: 14/14 passed (100%)
+```
+
+How to add cases (real-world failure capture, paraphrases, adversarial queries)
+is in [docs/evaluation.md](docs/evaluation.md).
+
+## Customization
+
+Six typical tuning points — corpus, chunk size, top-k, re-rank weight, real
+LLM provider, new document types — are walked through in
+[docs/customization.md](docs/customization.md). Most are one-line edits in
+[ragkit.py](ragkit.py) or env vars.
 
 ## What's inside
 
 | Path | Purpose |
 |------|---------|
-| `ragkit.py` | The kit: tokenize, chunk, TF-IDF index, retrieve, answer with citations. |
-| `data/` | Sample documents (HR, refunds, security) to index. |
-| `run.py` | Runs sample queries end to end. |
+| [ragkit.py](ragkit.py) | The kit: tokenize, chunk, TF-IDF index, **rerank**, complete, answer. |
+| [cli.py](cli.py) | Interactive REPL. `k N` adjusts top-k, `quit` exits. |
+| [run.py](run.py) | Scripted demo: 3 sample questions through `answer()`. |
+| [data/](data/) | Sample documents (HR, refunds, security) to index. |
+| [tests/](tests/) | 9 pytest tests covering retrieval, citation, and re-rank behaviour. |
+| [evals/](evals/) | Golden Q→top-doc set + CI-gating runner. |
+| [docs/](docs/) | Architecture, customization, and evaluation guides. |
 
 ## Swapping in a real model
 
 The default answerer is a deterministic local stub so the demo is reproducible
-without keys. A real LLM (Azure OpenAI / Anthropic) plugs in behind one `complete()`
-interface via `LLM_PROVIDER` — the retrieval, chunking, and citation layer stay
-exactly the same. Point it at a client's document set and host it (e.g. an Azure
-function or a Copilot Studio knowledge source).
+without keys. A real LLM (Azure OpenAI / Anthropic) plugs in behind the existing
+`complete()` interface via `LLM_PROVIDER` — the retrieval, re-ranking, chunking,
+and citation layers stay exactly the same. Point it at a client's document set
+and host it (e.g. an Azure function or a Copilot Studio knowledge source).
+Concrete env vars and adapter notes:
+[docs/customization.md#4-plug-a-real-llm-azure-openai-or-anthropic](docs/customization.md).

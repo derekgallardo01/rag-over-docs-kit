@@ -1,0 +1,16 @@
+[
+  {"id": "refund-policy", "question": "what is the refund policy?", "expect": {"top_doc": "refunds.md"}},
+  {"id": "refund-window", "question": "how many days do I have to request a refund?", "expect": {"top_doc": "refunds.md"}},
+  {"id": "refund-digital", "question": "are digital products refundable?", "expect": {"top_doc": "refunds.md"}},
+  {"id": "refund-how", "question": "how do I submit a refund request?", "expect": {"top_doc": "refunds.md"}},
+  {"id": "refund-shipping", "question": "are shipping fees refundable?", "expect": {"top_doc": "refunds.md"}},
+  {"id": "pto-days", "question": "how many days of PTO do new employees get?", "expect": {"top_doc": "hr-policy.md"}},
+  {"id": "pto-carryover", "question": "can unused PTO carry over into next year?", "expect": {"top_doc": "hr-policy.md"}},
+  {"id": "working-hours", "question": "what are the standard working hours?", "expect": {"top_doc": "hr-policy.md"}},
+  {"id": "parental-leave", "question": "am I entitled to parental leave?", "expect": {"top_doc": "hr-policy.md"}},
+  {"id": "flex-hours", "question": "can I have flexible start times?", "expect": {"top_doc": "hr-policy.md"}},
+  {"id": "security-incident", "question": "who do I contact about a security incident?", "expect": {"top_doc": "security.md"}},
+  {"id": "mfa", "question": "do I need multi-factor authentication?", "expect": {"top_doc": "security.md"}},
+  {"id": "data-handling", "question": "how should confidential data be handled?", "expect": {"top_doc": "security.md"}},
+  {"id": "password-rotation", "question": "how often are passwords rotated?", "expect": {"top_doc": "security.md"}}
+]
