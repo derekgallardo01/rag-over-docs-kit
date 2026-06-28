@@ -38,6 +38,14 @@ docker run --rm rag-kit python evals/run.py golden-tech.json data-tech   # techn
 docker run --rm -it rag-kit python cli.py                                # interactive REPL
 ```
 
+## Example: production scenario
+
+**[examples/question_answering.py](examples/question_answering.py)** — Full RAG loop: ingest corpus, build TF-IDF index with re-ranker, run a battery of questions, return answers with chunk-level citations (doc + chunk index + score)
+
+```bash
+python examples/question_answering.py
+```
+
 ## The problem it solves
 
 "Chatbot over our docs" projects fail when the bot makes things up or can't
