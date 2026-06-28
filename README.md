@@ -1,6 +1,6 @@
 # RAG-over-your-docs kit
 
-[![CI](https://github.com/derekgallardo01/rag-over-docs-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/derekgallardo01/rag-over-docs-kit/actions/workflows/ci.yml)
+[![CI](https://github.com/derekgallardo01/rag-over-docs-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/derekgallardo01/rag-over-docs-kit/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](#)
 
 **Live demo:** [derekgallardo01.github.io/rag-over-docs-kit](https://derekgallardo01.github.io/rag-over-docs-kit/) — sample questions answered with citations across both corpora (workplace + technical docs), regenerated on every push.
 
