@@ -1,0 +1,104 @@
+name: Deploy live demo to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate the static demo report
+        run: |
+          mkdir -p site
+          python - <<'PY'
+          import html
+          import os
+          import sys
+          sys.path.insert(0, ".")
+          from ragkit import answer, build_index
+
+          # Sample questions for each corpus to showcase the kit.
+          WORKPLACE_Q = [
+              "What is the refund policy?",
+              "How many days of PTO do new employees get?",
+              "Who do I contact about a security incident?",
+              "How often are passwords rotated?",
+          ]
+          TECH_Q = [
+              "How do I create a new API key?",
+              "What are the default rate limits for the API?",
+              "How do I verify the signature on a webhook delivery?",
+              "Why does my webhook handler keep timing out?",
+          ]
+
+          def block(label, corpus_dir, questions):
+              index = build_index(corpus_dir)
+              parts = [f'<h2>{html.escape(label)}</h2>']
+              parts.append(f'<p class="meta">Corpus: <code>{html.escape(corpus_dir)}/</code></p>')
+              for q in questions:
+                  parts.append(f'<div class="qa">')
+                  parts.append(f'<p class="q"><strong>Q:</strong> {html.escape(q)}</p>')
+                  raw = answer(q, index, k=2)
+                  # Convert the plain-text answer (with newlines) into a <pre>.
+                  parts.append(f'<pre class="a">{html.escape(raw)}</pre>')
+                  parts.append('</div>')
+              return ''.join(parts)
+
+          page = f"""<!DOCTYPE html>
+          <html lang="en"><head><meta charset="utf-8">
+          <title>RAG-over-your-docs kit - live demo</title>
+          <style>
+            body{{font-family:Segoe UI,Arial,sans-serif;max-width:820px;margin:2.5rem auto;padding:0 1.5rem;color:#222;background:#f3f4f6}}
+            h1{{font-size:1.5rem;margin-bottom:.25rem}}
+            h2{{font-size:1.15rem;border-left:4px solid #2b6cb0;padding-left:10px;margin-top:2rem}}
+            .lead{{color:#555;font-size:.95rem;margin-top:.25rem}}
+            .meta{{color:#888;font-size:.85rem}}
+            a{{color:#2b6cb0}}
+            code{{background:#eef0f3;padding:1px 6px;border-radius:4px;font-size:.9em}}
+            .qa{{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:1rem 1.25rem;margin:.75rem 0}}
+            .q{{margin:0 0 .5rem}}
+            .a{{white-space:pre-wrap;background:#fafbfc;padding:.85rem 1rem;border-radius:6px;
+                font-family:Consolas,Menlo,monospace;font-size:.9em;line-height:1.5;color:#222;margin:0;overflow-x:auto}}
+          </style>
+          </head><body>
+          <h1>RAG-over-your-docs kit - live demo</h1>
+          <p class="lead">Sample questions answered by the kit with source citations.
+          Two corpora ship in the repo and are both shown below.</p>
+
+          {block("Workplace corpus (HR / refunds / security)", "data", WORKPLACE_Q)}
+          {block("Technical-docs corpus (auth / rate-limits / webhooks)", "data-tech", TECH_Q)}
+
+          <p class="meta" style="margin-top:2.5rem">Generated on every push.
+          Source: <a href="https://github.com/derekgallardo01/rag-over-docs-kit">github.com/derekgallardo01/rag-over-docs-kit</a></p>
+          </body></html>
+          """
+          with open("site/index.html", "w", encoding="utf-8") as fh:
+              fh.write(page)
+          print("wrote site/index.html")
+          PY
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
