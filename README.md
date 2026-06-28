@@ -19,6 +19,16 @@ python evals/run.py          # CI-gating golden eval set
 python -m pytest -q          # 9 unit tests, including re-rank determinism
 ```
 
+## Run in Docker
+
+```bash
+docker build -t rag-kit .
+docker run --rm rag-kit                                                  # scripted demo
+docker run --rm rag-kit python evals/run.py                              # workplace eval set
+docker run --rm rag-kit python evals/run.py golden-tech.json data-tech   # technical-docs eval set
+docker run --rm -it rag-kit python cli.py                                # interactive REPL
+```
+
 ## The problem it solves
 
 "Chatbot over our docs" projects fail when the bot makes things up or can't
